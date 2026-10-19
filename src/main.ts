@@ -18,6 +18,43 @@ import {
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 const ASSETS = `${import.meta.env.BASE_URL}pdfjs/`;
+
+// ---------- theme ----------
+
+const THEME_KEY = "numerador-facturas:theme";
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+
+function applyTheme(theme: string | null): void {
+  if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+  const dark = theme ? theme === "dark" : darkQuery.matches;
+  const button = document.getElementById("theme")!;
+  button.textContent = dark ? "☀" : "☾";
+  button.setAttribute("aria-label", dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+}
+
+function savedTheme(): string | null {
+  try {
+    return localStorage.getItem(THEME_KEY);
+  } catch {
+    return null;
+  }
+}
+
+applyTheme(savedTheme());
+darkQuery.addEventListener("change", () => applyTheme(savedTheme()));
+document.getElementById("theme")!.addEventListener("click", () => {
+  const next =
+    document.documentElement.dataset.theme === "dark" ||
+    (!document.documentElement.dataset.theme && darkQuery.matches)
+      ? "light"
+      : "dark";
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch {
+    // ponytail: without storage the choice lasts until reload
+  }
+  applyTheme(next);
+});
 const STORAGE_KEY = "numerador-facturas:v1";
 
 interface Entry {
