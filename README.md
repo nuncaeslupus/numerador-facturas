@@ -26,6 +26,9 @@ Los PDFs protegidos se abren: si piden contraseña para abrirlos, la página la
 pregunta (no se guarda). La copia numerada sale **sin protección**. Los archivos
 que no se pueden leer se avisan arriba de la lista y no se numeran.
 
+Gratis y de código abierto. Disponible en español, inglés, francés, italiano,
+alemán y chino (según el idioma del navegador, o el que elijas arriba).
+
 La configuración se recuerda en el navegador (`localStorage`).
 
 ## Privacidad

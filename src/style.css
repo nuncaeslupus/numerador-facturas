@@ -100,9 +100,16 @@ h1 {
 }
 
 .lede {
-  margin: 0 0 20px;
+  margin: 14px 0 32px;
   color: var(--muted);
+  line-height: 1.65;
   max-width: 70ch;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 main {
@@ -119,8 +126,8 @@ main {
 }
 
 fieldset {
-  margin: 0 0 16px;
-  padding: 14px 16px 16px;
+  margin: 0 0 22px;
+  padding: 18px 20px 22px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -134,7 +141,7 @@ legend {
 label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -170,9 +177,9 @@ input#template {
 .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px 18px;
   align-items: end;
-  margin-top: 10px;
+  margin-top: 16px;
 }
 
 .unit {
@@ -185,12 +192,12 @@ label.check {
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 16px;
   color: var(--ink);
 }
 
 .hint {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: 0.85rem;
   color: var(--muted);
 }
@@ -314,6 +321,24 @@ button:disabled {
 .preview {
   position: sticky;
   top: 16px;
+}
+
+/* Side by side, the preview keeps its own scroll so it stays in view while the settings move. */
+@media (min-width: 861px) {
+  .preview {
+    display: flex;
+    flex-direction: column;
+    /* minus the footer, or at the page bottom the sticky box gets pushed up */
+    max-height: calc(100vh - 120px);
+  }
+
+  .sheet {
+    overflow-y: auto;
+    min-height: 0;
+    /* room for the page shadow, which the scroll box would clip */
+    margin: 0 -12px;
+    padding: 2px 12px 8px;
+  }
 }
 
 .nav {

@@ -1,7 +1,8 @@
 import "./style.css";
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { formatNumber, resolveRange } from "./format";
+import { NumberingError, formatNumber, resolveRange } from "./format";
+import { I18N, LANG_NAMES, applyLang, pickLang, type Lang } from "./i18n";
 import { sortFiles } from "./order";
 import { outputName, zipFiles } from "./output";
 import {
@@ -27,6 +28,43 @@ import {
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 const ASSETS = `${import.meta.env.BASE_URL}pdfjs/`;
 
+// ---------- language ----------
+
+const LANG_KEY = "numerador-facturas:lang";
+let T = I18N.es;
+
+function savedLang(): string | null {
+  try {
+    return localStorage.getItem(LANG_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setLang(lang: Lang): void {
+  T = I18N[lang];
+  document.documentElement.lang = lang;
+  document.title = T.docTitle;
+  document.querySelector('meta[name="description"]')!.setAttribute("content", T.description);
+  applyLang(document, T);
+}
+
+const langSelect = document.getElementById("lang") as HTMLSelectElement;
+for (const [code, name] of Object.entries(LANG_NAMES)) langSelect.add(new Option(name, code));
+langSelect.value = savedLang() ?? pickLang(navigator.languages);
+if (!(langSelect.value in I18N)) langSelect.value = "en";
+setLang(langSelect.value as Lang);
+langSelect.addEventListener("change", () => {
+  try {
+    localStorage.setItem(LANG_KEY, langSelect.value);
+  } catch {
+    // ponytail: without storage the choice lasts until reload
+  }
+  setLang(langSelect.value as Lang);
+  applyTheme(savedTheme());
+  refresh();
+});
+
 // ---------- theme ----------
 
 const THEME_KEY = "numerador-facturas:theme";
@@ -37,7 +75,7 @@ function applyTheme(theme: string | null): void {
   const dark = theme ? theme === "dark" : darkQuery.matches;
   const button = document.getElementById("theme")!;
   button.textContent = dark ? "☀" : "☾";
-  button.setAttribute("aria-label", dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+  button.setAttribute("aria-label", dark ? T.toLight : T.toDark);
 }
 
 function savedTheme(): string | null {
@@ -70,7 +108,7 @@ interface Entry {
   bytes: Uint8Array;
   pages: number;
   size: Size | null; // first page, as displayed
-  error?: string;
+  error?: "lockedPdf" | "invalidPdf";
 }
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -164,7 +202,12 @@ async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: s
   } catch (e) {
     const msg = (e as Error).message;
     return {
-      error: msg.includes("WinAnsi") ? "La fuente no admite algún carácter del formato" : msg,
+      error:
+        e instanceof NumberingError
+          ? (T[e.key] as (...a: number[]) => string)(...e.args)
+          : msg.includes("WinAnsi")
+            ? T.fontUnsupported
+            : msg,
     };
   }
 }
@@ -181,16 +224,12 @@ async function readEntry(file: File): Promise<Entry> {
     } catch (e) {
       const locked = needsPassword(e);
       // The password is only used here, never stored.
-      const asked = locked
-        ? prompt(
-            `«${file.name}» está protegido.${password ? " Contraseña incorrecta." : ""} Contraseña:`,
-          )
-        : null;
+      const asked = locked ? prompt(T.askPassword(file.name, password !== "")) : null;
       if (asked) {
         password = asked;
         continue;
       }
-      const error = locked ? "PDF protegido (sin contraseña)" : "No es un PDF válido";
+      const error = locked ? "lockedPdf" : "invalidPdf";
       return { file, bytes: raw, pages: 0, size: null, error };
     }
   }
@@ -198,7 +237,7 @@ async function readEntry(file: File): Promise<Entry> {
 
 async function addFiles(files: FileList | File[]): Promise<void> {
   const pdfs = [...files].filter((f) => f.type === "application/pdf" || /\.pdf$/i.test(f.name));
-  setStatus(`Leyendo ${pdfs.length} archivo(s)…`);
+  setStatus(T.reading(pdfs.length));
   const added = [];
   for (const f of pdfs) added.push(await readEntry(f)); // one password prompt at a time
   entries = sortEntries([...entries, ...added]);
@@ -242,13 +281,15 @@ async function renderList(): Promise<void> {
         <button type="button" class="name link"></button>
         <span class="meta"></span>
         <span class="actions">
-          <button type="button" data-act="up" aria-label="Subir">↑</button>
-          <button type="button" data-act="down" aria-label="Bajar">↓</button>
-          <button type="button" data-act="del" aria-label="Quitar">✕</button>
+          <button type="button" data-act="up" data-i18n-aria="up">↑</button>
+          <button type="button" data-act="down" data-i18n-aria="down">↓</button>
+          <button type="button" data-act="del" data-i18n-aria="remove">✕</button>
         </span>`;
       li.querySelector(".num")!.textContent = numbers.get(e) ?? "—";
       li.querySelector(".name")!.textContent = e.file.name;
-      li.querySelector(".meta")!.textContent = e.error ?? `${e.pages} pág. · ${sizeLabel(e.size)}`;
+      li.querySelector(".meta")!.textContent = e.error
+        ? T[e.error]
+        : `${T.pages(e.pages)} · ${sizeLabel(e.size)}`;
       li.addEventListener("click", (ev) => {
         const act = (ev.target as HTMLElement).dataset.act;
         if (act === "up") move(i, i - 1);
@@ -274,18 +315,28 @@ async function renderList(): Promise<void> {
     }),
   );
 
+  applyLang(list, T);
+
   const bad = skipped();
   $("skipped").hidden = bad.length === 0;
-  $("skipped").textContent = `⚠ ${bad.length} archivo(s) no se numerarán: ${bad.join(", ")}`;
+  $("skipped").textContent = T.skipped(bad);
+  $("count").hidden = entries.length === 0;
+  $("count").textContent = T.fileCount(entries.length);
 
   const ok = valid();
   const rangeEl = $("range");
   rangeEl.classList.toggle("bad", "error" in result);
   if ("error" in result) rangeEl.textContent = result.error;
   else if (ok.length)
-    rangeEl.textContent = `${ok.length} factura(s): ${result.numbers.get(ok[0])} … ${result.numbers.get(ok[ok.length - 1])}`;
+    rangeEl.textContent = T.range(
+      ok.length,
+      result.numbers.get(ok[0])!,
+      result.numbers.get(ok[ok.length - 1])!,
+    );
   else
-    rangeEl.textContent = `Ejemplo: ${formatNumber(input("template").value, optionalNumber("start") ?? 1)}`;
+    rangeEl.textContent = T.example(
+      formatNumber(input("template").value, optionalNumber("start") ?? 1),
+    );
   $<HTMLButtonElement>("run").disabled =
     "error" in result || ok.length === 0 || (!input("zip").checked && !input("merge").checked);
 }
@@ -300,7 +351,7 @@ async function renderPreview(): Promise<void> {
   const e = entries[current];
   $("previewName").textContent = e
     ? `${current + 1}/${entries.length} · ${e.file.name}`
-    : "Sin archivos";
+    : T.noFiles;
   if (!e || e.error) {
     sheet.replaceChildren();
     return;
@@ -412,7 +463,7 @@ $("run").addEventListener("click", async () => {
     const opts = stampOptions();
     const stamped: { name: string; data: Uint8Array }[] = [];
     for (const [i, e] of ok.entries()) {
-      setStatus(`Numerando ${i + 1}/${ok.length}…`);
+      setStatus(T.stamping(i + 1, ok.length));
       const number = result.numbers.get(e)!;
       stamped.push({
         name: outputName(number, e.file.name),
@@ -421,24 +472,16 @@ $("run").addEventListener("click", async () => {
     }
     const first = result.numbers.get(ok[0])!;
     const last = result.numbers.get(ok[ok.length - 1])!;
-    const label = outputName(`${first}_a_${last}`, "").replace(/_$/, "");
-    if (input("zip").checked)
-      download(zipFiles(stamped), `facturas_${label}.zip`, "application/zip");
+    const label = outputName(T.bundle(first, last), "").replace(/_$/, "");
+    if (input("zip").checked) download(zipFiles(stamped), `${label}.zip`, "application/zip");
     if (input("merge").checked) {
-      setStatus("Combinando…");
-      download(
-        await mergePdfs(stamped.map((s) => s.data)),
-        `facturas_${label}.pdf`,
-        "application/pdf",
-      );
+      setStatus(T.merging);
+      download(await mergePdfs(stamped.map((s) => s.data)), `${label}.pdf`, "application/pdf");
     }
     const bad = skipped();
-    setStatus(
-      `Hecho: ${ok.length} factura(s), ${first} … ${last}.` +
-        (bad.length ? ` Sin numerar: ${bad.join(", ")}.` : ""),
-    );
+    setStatus(T.done(ok.length, first, last) + (bad.length ? T.notNumbered(bad) : ""));
   } catch (e) {
-    setStatus(`Error: ${(e as Error).message}`);
+    setStatus(T.error((e as Error).message));
   } finally {
     button.disabled = false;
   }
