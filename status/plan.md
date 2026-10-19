@@ -92,6 +92,12 @@ Vista previa: 1ª página del archivo seleccionado (◀ ▶) → pdfjs → `<can
 
 | T# | Gate | Measured | Command | SHA | Env | Date |
 |----|------|----------|---------|-----|-----|------|
+| T1 | `make_check_exit_code == 0` | 0 | `make check` | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
+| T2 | `unit_tests_failed == 0` | 0 (23/23) | `npm test` | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
+| T3 | `unit_tests_failed == 0` | 0 (23/23) | `npm test` | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
+| T4 | `stamp_text_found_on_every_page == true` | true | `npx vitest run tests/stamp.test.ts` | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
+| T5 | `unit_tests_failed == 0` | 0 (23/23); UI verificada en navegador con 4 PDFs sintéticos (orden, clic, recuadro, ZIP+PDF, sin peticiones externas) | `npm test` + `vite preview` | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
+| T6 | `batch_60_files_seconds <= 10` | pendiente — medición manual del usuario | manual | a6b0f13 | linux, node v24.13.0 | 2026-10-19 |
 
 ---
 

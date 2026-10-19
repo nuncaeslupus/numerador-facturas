@@ -36,7 +36,7 @@ Vite + TypeScript, [pdf-lib](https://pdf-lib.js.org/) para estampar y unir,
 [fflate](https://github.com/101arrowz/fflate) para el ZIP.
 
 ```bash
-make sync     # npm ci
+make sync     # npm install
 make dev      # servidor local
 make check    # formato, lint, tipos, build y tests
 ```
