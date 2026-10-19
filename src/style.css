@@ -11,8 +11,9 @@
   color-scheme: light dark;
 }
 
+/* Dark follows the system unless the toggle forced a theme (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #17181a;
     --panel: #212326;
     --ink: #ecebe8;
@@ -23,6 +24,23 @@
     --bad: #ff8a80;
     --sheet-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #17181a;
+  --panel: #212326;
+  --ink: #ecebe8;
+  --muted: #9da1a7;
+  --line: #34373b;
+  --accent: #e0714f;
+  --accent-ink: #17181a;
+  --bad: #ff8a80;
+  --sheet-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 * {
@@ -52,7 +70,30 @@ header {
   padding-top: 28px;
 }
 
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h1 img {
+  flex: none;
+}
+
+.theme {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 1.1rem;
+  border-radius: 50%;
+}
+
 h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 0 4px;
   font-size: 1.6rem;
   letter-spacing: -0.01em;
@@ -304,8 +345,12 @@ footer {
   padding-bottom: 32px;
   font-size: 0.85rem;
   color: var(--muted);
+  text-align: center;
 }
 
 footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--accent);
 }
