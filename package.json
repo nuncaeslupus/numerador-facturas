@@ -1,0 +1,40 @@
+{
+  "name": "numerador-facturas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Numera facturas PDF en el navegador. Nada se sube a ningún servidor.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "assets": "rm -rf public/pdfjs && mkdir -p public/pdfjs && cd node_modules/pdfjs-dist && cp -r standard_fonts cmaps wasm iccs ../../public/pdfjs/",
+    "predev": "npm run assets",
+    "prebuild": "npm run assets",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,css}\" \"tests/**/*.ts\" \"*.{json,js,ts}\" index.html",
+    "format:check": "prettier --check \"src/**/*.{ts,css}\" \"tests/**/*.ts\" \"*.{json,js,ts}\" index.html",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.4.299"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}
