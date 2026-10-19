@@ -345,7 +345,11 @@ footer {
   padding-bottom: 32px;
   font-size: 0.85rem;
   color: var(--muted);
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 20px;
 }
 
 footer a {
