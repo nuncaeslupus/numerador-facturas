@@ -17,9 +17,14 @@ lado del cliente — los PDFs nunca salen de tu equipo.
 3. **Posición y aspecto** — haz clic en la vista previa o escribe la distancia
    en mm desde la izquierda/derecha y desde arriba/abajo (por defecto, 10 mm de la
    esquina superior derecha). Así funciona igual en A4 y en recibos más bajos.
-   Fuente, tamaño, color y recuadro blanco opcional detrás del número.
+   Fuente, tamaño y color del número, y un recuadro opcional detrás con su color y
+   margen (p. ej. recuadro negro y número blanco).
 4. **Resultado** — un ZIP con un PDF por factura (`F-0001_original.pdf`) y/o un
    único PDF con todas juntas.
+
+Los PDFs protegidos se abren: si piden contraseña para abrirlos, la página la
+pregunta (no se guarda). La copia numerada sale **sin protección**. Los archivos
+que no se pueden leer se avisan arriba de la lista y no se numeran.
 
 La configuración se recuerda en el navegador (`localStorage`).
 
@@ -31,7 +36,7 @@ hace peticiones de red (`fetch`, XHR, WebSocket…).
 
 ## Desarrollo
 
-Vite + TypeScript, [pdf-lib](https://pdf-lib.js.org/) para estampar y unir,
+Vite + TypeScript, [@cantoo/pdf-lib](https://github.com/cantoo-scribe/pdf-lib) (pdf-lib con soporte de cifrado) para estampar y unir,
 [pdf.js](https://mozilla.github.io/pdf.js/) para la vista previa y
 [fflate](https://github.com/101arrowz/fflate) para el ZIP.
 

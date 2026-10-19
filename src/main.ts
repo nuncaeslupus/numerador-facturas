@@ -1,7 +1,6 @@
 import "./style.css";
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { PDFDocument } from "pdf-lib";
 import { formatNumber, resolveRange } from "./format";
 import { sortFiles } from "./order";
 import { outputName, zipFiles } from "./output";
@@ -17,6 +16,8 @@ import {
   FONTS,
   checkEncodable,
   mergePdfs,
+  needsPassword,
+  openPdf,
   stampPdf,
   visibleSize,
   type FontName,
@@ -92,6 +93,8 @@ const SETTINGS = [
   "font",
   "sizePt",
   "color",
+  "boxColor",
+  "boxPadMm",
 ];
 const CHECKS = ["background", "zip", "merge"];
 
@@ -135,12 +138,15 @@ function stampOptions(): StampOptions {
     sizePt: Number(input("sizePt").value) || 11,
     color: input("color").value,
     background: input("background").checked,
+    boxColor: input("boxColor").value,
+    boxPadMm: Number(input("boxPadMm").value) || 0,
   };
 }
 
 const optionalNumber = (id: string) =>
   input(id).value === "" ? undefined : Number(input(id).value);
 const valid = () => entries.filter((e) => !e.error);
+const skipped = () => entries.filter((e) => e.error).map((e) => e.file.name);
 
 /** Number text per valid entry, or an error message. */
 async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: string }> {
@@ -166,26 +172,35 @@ async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: s
 // ---------- file list ----------
 
 async function readEntry(file: File): Promise<Entry> {
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  try {
-    const doc = await PDFDocument.load(bytes);
-    return { file, bytes, pages: doc.getPageCount(), size: visibleSize(doc.getPage(0)) };
-  } catch (e) {
-    const encrypted = /encrypt/i.test((e as Error).message);
-    return {
-      file,
-      bytes,
-      pages: 0,
-      size: null,
-      error: encrypted ? "PDF protegido" : "No es un PDF válido",
-    };
+  const raw = new Uint8Array(await file.arrayBuffer());
+  let password = "";
+  for (;;) {
+    try {
+      const { doc, bytes } = await openPdf(raw, password);
+      return { file, bytes, pages: doc.getPageCount(), size: visibleSize(doc.getPage(0)) };
+    } catch (e) {
+      const locked = needsPassword(e);
+      // The password is only used here, never stored.
+      const asked = locked
+        ? prompt(
+            `«${file.name}» está protegido.${password ? " Contraseña incorrecta." : ""} Contraseña:`,
+          )
+        : null;
+      if (asked) {
+        password = asked;
+        continue;
+      }
+      const error = locked ? "PDF protegido (sin contraseña)" : "No es un PDF válido";
+      return { file, bytes: raw, pages: 0, size: null, error };
+    }
   }
 }
 
 async function addFiles(files: FileList | File[]): Promise<void> {
   const pdfs = [...files].filter((f) => f.type === "application/pdf" || /\.pdf$/i.test(f.name));
   setStatus(`Leyendo ${pdfs.length} archivo(s)…`);
-  const added = await Promise.all(pdfs.map(readEntry));
+  const added = [];
+  for (const f of pdfs) added.push(await readEntry(f)); // one password prompt at a time
   entries = sortEntries([...entries, ...added]);
   setStatus("");
   refresh();
@@ -258,6 +273,10 @@ async function renderList(): Promise<void> {
       return li;
     }),
   );
+
+  const bad = skipped();
+  $("skipped").hidden = bad.length === 0;
+  $("skipped").textContent = `⚠ ${bad.length} archivo(s) no se numerarán: ${bad.join(", ")}`;
 
   const ok = valid();
   const rangeEl = $("range");
@@ -413,7 +432,11 @@ $("run").addEventListener("click", async () => {
         "application/pdf",
       );
     }
-    setStatus(`Hecho: ${ok.length} factura(s), ${first} … ${last}.`);
+    const bad = skipped();
+    setStatus(
+      `Hecho: ${ok.length} factura(s), ${first} … ${last}.` +
+        (bad.length ? ` Sin numerar: ${bad.join(", ")}.` : ""),
+    );
   } catch (e) {
     setStatus(`Error: ${(e as Error).message}`);
   } finally {

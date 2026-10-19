@@ -1,4 +1,12 @@
-import { PDFDocument, PDFPage, StandardFonts, degrees, rgb, type PDFFont } from "pdf-lib";
+import {
+  EncryptedPDFError,
+  PDFDocument,
+  PDFPage,
+  StandardFonts,
+  degrees,
+  rgb,
+  type PDFFont,
+} from "@cantoo/pdf-lib";
 import { PT_PER_MM, offsetsToPoint, type Offsets, type Size } from "./position";
 
 export type FontName = `${StandardFonts}`;
@@ -11,9 +19,35 @@ export interface StampOptions extends Offsets {
   sizePt: number;
   color: string; // #rrggbb
   background: boolean;
+  boxColor: string; // #rrggbb
+  boxPadMm: number; // margin between the number and the box edge
 }
 
-const PAD_PT = 1 * PT_PER_MM;
+/**
+ * Opens a PDF, decrypting it when it is encrypted. Owner-only protection (opens without a
+ * password) needs nothing; otherwise pass the user password. Decrypted files come back
+ * re-saved without encryption, so later steps can load them plainly.
+ */
+export async function openPdf(
+  bytes: Uint8Array,
+  password = "",
+): Promise<{ doc: PDFDocument; bytes: Uint8Array }> {
+  try {
+    return { doc: await PDFDocument.load(bytes), bytes };
+  } catch (e) {
+    if (!(e instanceof EncryptedPDFError)) throw e;
+  }
+  const doc = await PDFDocument.load(bytes, { password, ignoreEncryption: true });
+  // Saving the decrypted doc can keep /Encrypt in the trailer; a fresh doc cannot.
+  // ponytail: copyPages drops outlines and forms — fine for invoices.
+  const plain = await PDFDocument.create();
+  for (const page of await plain.copyPages(doc, doc.getPageIndices())) plain.addPage(page);
+  const out = await plain.save();
+  return { doc: await PDFDocument.load(out), bytes: out };
+}
+
+/** True when openPdf failed for want of the right password. */
+export const needsPassword = (e: unknown): boolean => /password/i.test((e as Error).message);
 
 /** Size of the page as displayed (CropBox, rotation applied), in mm. */
 export function visibleSize(page: PDFPage): Size {
@@ -57,12 +91,13 @@ function stampPage(page: PDFPage, text: string, font: PDFFont, o: StampOptions):
   const rotate = degrees(page.getRotation().angle);
 
   if (o.background) {
-    const corner = toUser(page, left - PAD_PT, top + th + PAD_PT);
+    const pad = o.boxPadMm * PT_PER_MM;
+    const corner = toUser(page, left - pad, top + th + pad);
     page.drawRectangle({
       ...corner,
-      width: tw + 2 * PAD_PT,
-      height: th + 2 * PAD_PT,
-      color: rgb(1, 1, 1),
+      width: tw + 2 * pad,
+      height: th + 2 * pad,
+      color: hexToRgb(o.boxColor),
       rotate,
     });
   }
@@ -75,7 +110,7 @@ function stampPage(page: PDFPage, text: string, font: PDFFont, o: StampOptions):
   });
 }
 
-/** Stamps `text` on every page. Throws on encrypted or unreadable PDFs. */
+/** Stamps `text` on every page. Expects bytes from openPdf; throws on unreadable PDFs. */
 export async function stampPdf(
   bytes: Uint8Array,
   text: string,
