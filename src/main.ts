@@ -89,6 +89,7 @@ const SETTINGS = [
 const CHECKS = ["background", "zip", "merge"];
 
 for (const f of FONTS) select("font").add(new Option(f.replace(/-/g, " "), f));
+select("font").value = "Helvetica";
 
 function loadSettings(): void {
   try {
