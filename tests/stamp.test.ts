@@ -1,8 +1,8 @@
 import { OPS, getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { PDFDocument, StandardFonts, degrees } from "pdf-lib";
+import { PDFDocument, StandardFonts, degrees } from "@cantoo/pdf-lib";
 import { describe, expect, it } from "vitest";
 import { PT_PER_MM } from "../src/position";
-import { mergePdfs, stampPdf, type StampOptions } from "../src/stamp";
+import { mergePdfs, needsPassword, openPdf, stampPdf, type StampOptions } from "../src/stamp";
 
 const MM = PT_PER_MM;
 const OPTS: StampOptions = {
@@ -14,6 +14,8 @@ const OPTS: StampOptions = {
   sizePt: 10,
   color: "#000000",
   background: false,
+  boxColor: "#ffffff",
+  boxPadMm: 1,
 };
 
 async function makePdf(pages: [number, number][], rotation = 0): Promise<Uint8Array> {
@@ -79,8 +81,8 @@ describe("stampPdf", () => {
 
   it("test_stampPdf_background_draws_white_rect", async () => {
     const page = [[210 * MM, 297 * MM]] as [number, number][];
-    const fills = async (background: boolean) => {
-      const out = await stampPdf(await makePdf(page), "F-0001", { ...OPTS, background });
+    const fills = async (background: boolean, more: Partial<StampOptions> = {}) => {
+      const out = await stampPdf(await makePdf(page), "F-0001", { ...OPTS, background, ...more });
       const ops = await (
         await (await getDocument({ data: out }).promise).getPage(1)
       ).getOperatorList();
@@ -90,6 +92,22 @@ describe("stampPdf", () => {
     };
     expect(await fills(true)).toEqual(["#ffffff", "#000000"]);
     expect(await fills(false)).toEqual(["#000000"]);
+  });
+
+  it("test_stampPdf_black_box_white_text_uses_chosen_colors", async () => {
+    const out = await stampPdf(await makePdf([[210 * MM, 297 * MM]]), "F-0001", {
+      ...OPTS,
+      background: true,
+      boxColor: "#000000",
+      color: "#ffffff",
+    });
+    const ops = await (
+      await (await getDocument({ data: out }).promise).getPage(1)
+    ).getOperatorList();
+    const fills = ops.fnArray.flatMap((fn, i) =>
+      fn === OPS.setFillRGBColor ? [ops.argsArray[i][0]] : [],
+    );
+    expect(fills).toEqual(["#000000", "#ffffff"]);
   });
 
   it("rejects a corrupt file", async () => {
@@ -109,4 +127,32 @@ it("mergePdfs keeps every page in order", async () => {
   );
   const pages = await readText(await mergePdfs([a, b]));
   expect(pages.map((p) => p[0].str)).toEqual(["A", "B", "B"]);
+});
+
+describe("openPdf", () => {
+  async function encrypted(userPassword: string): Promise<Uint8Array> {
+    const doc = await PDFDocument.create();
+    doc.addPage([595, 842]);
+    doc.encrypt({ userPassword, ownerPassword: `${userPassword}-owner` });
+    return doc.save();
+  }
+
+  it("test_openPdf_owner_only_encryption_opens_without_password", async () => {
+    const { bytes } = await openPdf(await encrypted(""));
+    const pages = await readText(await stampPdf(bytes, "F-0009", OPTS));
+    expect(pages[0].map((t) => t.str)).toContain("F-0009");
+  });
+
+  it("test_openPdf_user_password_missing_or_wrong_needs_password", async () => {
+    const data = await encrypted("abrir");
+    for (const pw of [undefined, "mal"]) {
+      const err = await openPdf(data, pw).catch((e: unknown) => e);
+      expect(needsPassword(err)).toBe(true);
+    }
+  });
+
+  it("test_openPdf_user_password_given_returns_plain_bytes", async () => {
+    const { bytes } = await openPdf(await encrypted("abrir"), "abrir");
+    expect((await PDFDocument.load(bytes)).isEncrypted).toBe(false);
+  });
 });
