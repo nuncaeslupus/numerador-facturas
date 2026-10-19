@@ -5,7 +5,14 @@ import { PDFDocument } from "pdf-lib";
 import { formatNumber, resolveRange } from "./format";
 import { sortFiles } from "./order";
 import { outputName, zipFiles } from "./output";
-import { offsetsToPoint, pointToOffsets, type FromX, type FromY, type Size } from "./position";
+import {
+  PT_PER_MM,
+  offsetsToPoint,
+  pointToOffsets,
+  type FromX,
+  type FromY,
+  type Size,
+} from "./position";
 import {
   FONTS,
   checkEncodable,
@@ -232,13 +239,13 @@ let renderSeq = 0;
 
 async function renderPreview(): Promise<void> {
   const seq = ++renderSeq;
-  const canvas = $<HTMLCanvasElement>("canvas");
+  const sheet = $("sheet");
   const e = entries[current];
   $("previewName").textContent = e
     ? `${current + 1}/${entries.length} · ${e.file.name}`
     : "Sin archivos";
   if (!e || e.error) {
-    canvas.width = canvas.height = 0;
+    sheet.replaceChildren();
     return;
   }
   const result = await numbering();
@@ -253,26 +260,33 @@ async function renderPreview(): Promise<void> {
     iccUrl: `${ASSETS}iccs/`,
   });
   const doc = await task.promise;
-  const page = await doc.getPage(1);
-  const cssWidth = canvas.parentElement!.clientWidth;
-  const base = page.getViewport({ scale: 1 });
-  const viewport = page.getViewport({ scale: (cssWidth / base.width) * devicePixelRatio });
-  const off = document.createElement("canvas");
-  off.width = viewport.width;
-  off.height = viewport.height;
-  await page.render({ canvas: off, viewport }).promise;
+  const cssWidth = sheet.clientWidth;
+  // ponytail: renders every page at once; lazy rendering if long files get slow
+  const canvases: HTMLCanvasElement[] = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: (cssWidth / base.width) * devicePixelRatio });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.width = `${cssWidth}px`;
+    // Displayed page size in mm, so a click maps to this page's own dimensions.
+    canvas.dataset.w = String(base.width / PT_PER_MM);
+    canvas.dataset.h = String(base.height / PT_PER_MM);
+    await page.render({ canvas, viewport }).promise;
+    canvases.push(canvas);
+  }
   await task.destroy();
   if (seq !== renderSeq) return;
-  canvas.width = off.width;
-  canvas.height = off.height;
-  canvas.style.width = `${cssWidth}px`;
-  canvas.getContext("2d")!.drawImage(off, 0, 0);
+  sheet.replaceChildren(...canvases);
 }
 
-$("canvas").addEventListener("click", (ev) => {
-  const size = entries[current]?.size;
-  if (!size) return;
-  const rect = (ev.target as HTMLCanvasElement).getBoundingClientRect();
+$("sheet").addEventListener("click", (ev) => {
+  const canvas = ev.target as HTMLElement;
+  if (!(canvas instanceof HTMLCanvasElement)) return;
+  const size = { width: Number(canvas.dataset.w), height: Number(canvas.dataset.h) };
+  const rect = canvas.getBoundingClientRect();
   const point = {
     x: ((ev.clientX - rect.left) / rect.width) * size.width,
     y: ((ev.clientY - rect.top) / rect.height) * size.height,

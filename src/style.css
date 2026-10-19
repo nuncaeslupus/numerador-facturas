@@ -292,6 +292,7 @@ button:disabled {
 
 .sheet canvas {
   display: block;
+  margin-bottom: 16px;
   max-width: 100%;
   background: #fff;
   box-shadow: var(--sheet-shadow);
