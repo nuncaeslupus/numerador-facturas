@@ -214,23 +214,35 @@ async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: s
 
 // ---------- file list ----------
 
+// Passwords that have opened a file this session, tried on later locked files
+// so each distinct one is asked only once. In memory only — never stored, gone
+// on reload or Clear.
+let knownPasswords: string[] = [];
+
 async function readEntry(file: File): Promise<Entry> {
   const raw = new Uint8Array(await file.arrayBuffer());
-  let password = "";
-  for (;;) {
+  const open = async (password: string): Promise<Entry> => {
+    const { doc, bytes } = await openPdf(raw, password);
+    return { file, bytes, pages: doc.getPageCount(), size: visibleSize(doc.getPage(0)) };
+  };
+  // No password, then every password already gathered this session.
+  for (const pw of ["", ...knownPasswords]) {
     try {
-      const { doc, bytes } = await openPdf(raw, password);
-      return { file, bytes, pages: doc.getPageCount(), size: visibleSize(doc.getPage(0)) };
+      return await open(pw);
     } catch (e) {
-      const locked = needsPassword(e);
-      // The password is only used here, never stored.
-      const asked = locked ? prompt(T.askPassword(file.name, password !== "")) : null;
-      if (asked) {
-        password = asked;
-        continue;
-      }
-      const error = locked ? "lockedPdf" : "invalidPdf";
-      return { file, bytes: raw, pages: 0, size: null, error };
+      if (!needsPassword(e)) return { file, bytes: raw, pages: 0, size: null, error: "invalidPdf" };
+    }
+  }
+  // Still locked and nothing known fits — ask, remembering each password that works.
+  for (let retry = false; ; retry = true) {
+    const asked = prompt(T.askPassword(file.name, retry));
+    if (!asked) return { file, bytes: raw, pages: 0, size: null, error: "lockedPdf" };
+    try {
+      const entry = await open(asked);
+      if (!knownPasswords.includes(asked)) knownPasswords.push(asked);
+      return entry;
+    } catch (e) {
+      if (!needsPassword(e)) return { file, bytes: raw, pages: 0, size: null, error: "invalidPdf" };
     }
   }
 }
@@ -519,6 +531,7 @@ select("sortBy").addEventListener("change", () => {
 $("clear").addEventListener("click", () => {
   entries = [];
   current = 0;
+  knownPasswords = []; // forget collected passwords on a deliberate reset
   refresh();
 });
 for (const id of [...SETTINGS.filter((k) => k !== "fromX" && k !== "fromY"), ...CHECKS])
