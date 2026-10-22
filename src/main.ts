@@ -1,6 +1,4 @@
 import "./style.css";
-import * as pdfjs from "pdfjs-dist";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { NumberingError, formatNumber, resolveRange } from "./format";
 import { I18N, LANG_NAMES, applyLang, pickLang, type Lang } from "./i18n";
 import { sortFiles } from "./order";
@@ -13,20 +11,27 @@ import {
   type FromY,
   type Size,
 } from "./position";
-import {
-  FONTS,
-  checkEncodable,
-  mergePdfs,
-  needsPassword,
-  openPdf,
-  stampPdf,
-  visibleSize,
-  type FontName,
-  type StampOptions,
-} from "./stamp";
+import { type FontName, type StampOptions } from "./stamp";
 
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 const ASSETS = `${import.meta.env.BASE_URL}pdfjs/`;
+
+// The PDF engines (pdf.js for the preview, pdf-lib for stamping) are the bulk of
+// the bundle but are only needed once there are files to work with. Load them on
+// demand, memoised, so an idle landing page ships little more than the UI.
+let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
+function getPdfjs(): Promise<typeof import("pdfjs-dist")> {
+  return (pdfjsPromise ??= (async () => {
+    const [pdfjs, { default: workerUrl }] = await Promise.all([
+      import("pdfjs-dist"),
+      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+    ]);
+    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    return pdfjs;
+  })());
+}
+
+let stampPromise: Promise<typeof import("./stamp")> | null = null;
+const getStamp = (): Promise<typeof import("./stamp")> => (stampPromise ??= import("./stamp"));
 
 // ---------- language ----------
 
@@ -136,8 +141,21 @@ const SETTINGS = [
 ];
 const CHECKS = ["background", "zip", "merge"];
 
-for (const f of FONTS) select("font").add(new Option(f.replace(/-/g, " "), f));
-select("font").value = "Helvetica";
+// Fonts come from pdf-lib, so fill the dropdown once that engine has loaded and
+// then restore the saved choice (loadSettings runs before the options exist).
+void getStamp().then(({ FONTS }) => {
+  const sel = select("font");
+  for (const f of FONTS) sel.add(new Option(f.replace(/-/g, " "), f));
+  let wanted = "Helvetica";
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as { font?: unknown };
+    if (typeof saved.font === "string") wanted = saved.font;
+  } catch {
+    // ponytail: corrupt or blocked storage just means the default font
+  }
+  sel.value = [...sel.options].some((o) => o.value === wanted) ? wanted : "Helvetica";
+  refresh();
+});
 
 function loadSettings(): void {
   try {
@@ -197,7 +215,11 @@ async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: s
     );
     const tpl = input("template").value;
     const numbers = new Map(ok.map((e, i) => [e, formatNumber(tpl, start + i)]));
-    await checkEncodable(formatNumber(tpl, start), stampOptions().font);
+    // Only worth loading pdf-lib (and checking the font) once there is something to number.
+    if (ok.length) {
+      const { checkEncodable } = await getStamp();
+      await checkEncodable(formatNumber(tpl, start), stampOptions().font);
+    }
     return { numbers };
   } catch (e) {
     const msg = (e as Error).message;
@@ -220,6 +242,7 @@ async function numbering(): Promise<{ numbers: Map<Entry, string> } | { error: s
 let knownPasswords: string[] = [];
 
 async function readEntry(file: File): Promise<Entry> {
+  const { openPdf, needsPassword, visibleSize } = await getStamp();
   const raw = new Uint8Array(await file.arrayBuffer());
   const open = async (password: string): Promise<Entry> => {
     const { doc, bytes } = await openPdf(raw, password);
@@ -370,6 +393,7 @@ async function renderPreview(): Promise<void> {
   }
   const result = await numbering();
   const text = "numbers" in result ? result.numbers.get(e)! : "";
+  const [pdfjs, { stampPdf }] = await Promise.all([getPdfjs(), getStamp()]);
   const bytes = text ? await stampPdf(e.bytes, text, stampOptions()) : e.bytes;
   if (seq !== renderSeq) return;
   const task = pdfjs.getDocument({
@@ -471,6 +495,7 @@ $("run").addEventListener("click", async () => {
   const button = $<HTMLButtonElement>("run");
   button.disabled = true;
   try {
+    const { stampPdf, mergePdfs } = await getStamp();
     const ok = valid();
     const opts = stampOptions();
     const stamped: { name: string; data: Uint8Array }[] = [];
