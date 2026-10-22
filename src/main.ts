@@ -141,21 +141,35 @@ const SETTINGS = [
 ];
 const CHECKS = ["background", "zip", "merge"];
 
-// Fonts come from pdf-lib, so fill the dropdown once that engine has loaded and
-// then restore the saved choice (loadSettings runs before the options exist).
-void getStamp().then(({ FONTS }) => {
-  const sel = select("font");
-  for (const f of FONTS) sel.add(new Option(f.replace(/-/g, " "), f));
-  let wanted = "Helvetica";
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as { font?: unknown };
-    if (typeof saved.font === "string") wanted = saved.font;
-  } catch {
-    // ponytail: corrupt or blocked storage just means the default font
-  }
-  sel.value = [...sel.options].some((o) => o.value === wanted) ? wanted : "Helvetica";
-  refresh();
-});
+// The font list comes from pdf-lib. To keep that engine off the landing path,
+// show the saved (or default) font right away and fill the full list only when
+// the dropdown is first opened — so the page loads without pdf-lib's weight.
+const fontSelect = select("font");
+let savedFont = "Helvetica";
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as { font?: unknown };
+  if (typeof saved.font === "string" && saved.font) savedFont = saved.font;
+} catch {
+  // ponytail: corrupt or blocked storage just means the default font
+}
+fontSelect.add(new Option(savedFont.replace(/-/g, " "), savedFont));
+fontSelect.value = savedFont;
+
+let fontsLoaded = false;
+async function loadFontOptions(): Promise<void> {
+  if (fontsLoaded) return;
+  fontsLoaded = true;
+  const { FONTS } = await getStamp();
+  const current = fontSelect.value;
+  fontSelect.replaceChildren();
+  for (const f of FONTS) fontSelect.add(new Option(f.replace(/-/g, " "), f));
+  fontSelect.value = [...fontSelect.options].some((o) => o.value === current)
+    ? current
+    : "Helvetica";
+}
+// Opening the dropdown (pointer or keyboard) brings in the full list.
+fontSelect.addEventListener("pointerdown", () => void loadFontOptions());
+fontSelect.addEventListener("focus", () => void loadFontOptions());
 
 function loadSettings(): void {
   try {
