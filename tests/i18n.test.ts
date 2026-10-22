@@ -12,8 +12,11 @@ describe("i18n", () => {
   it("test_pickLang_matches_base_tag_else_english", () => {
     expect(pickLang(["fr-CA", "en"])).toBe("fr");
     expect(pickLang(["zh-Hans-CN"])).toBe("zh");
-    expect(pickLang(["pt-BR", "de"])).toBe("de");
-    expect(pickLang(["pt-BR"])).toBe("en");
+    expect(pickLang(["pt-BR", "de"])).toBe("pt");
+    expect(pickLang(["ca-ES"])).toBe("ca");
+    expect(pickLang(["ja-JP"])).toBe("ja");
+    expect(pickLang(["nl-NL", "de"])).toBe("de");
+    expect(pickLang(["nl-NL"])).toBe("en");
   });
 
   it("test_numbering_error_translates_with_its_args", () => {
