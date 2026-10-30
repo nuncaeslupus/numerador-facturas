@@ -125,7 +125,8 @@ function stampPage(page: PDFPage, text: string, font: PDFFont, o: StampOptions):
 function fixEmptyContentStreams(page: PDFPage): void {
   const { context } = page.node;
   const contents = page.node.Contents();
-  const streams = contents instanceof PDFArray ? contents.asArray().map((r) => context.lookup(r)) : [contents];
+  const streams =
+    contents instanceof PDFArray ? contents.asArray().map((r) => context.lookup(r)) : [contents];
   for (const s of streams) {
     if (s instanceof PDFRawStream && s.contents.length === 0) s.dict.delete(PDFName.of("Filter"));
   }

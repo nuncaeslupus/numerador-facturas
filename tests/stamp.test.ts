@@ -1,5 +1,12 @@
 import { OPS, getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { PDFArray, PDFDocument, PDFName, PDFRawStream, StandardFonts, degrees } from "@cantoo/pdf-lib";
+import {
+  PDFArray,
+  PDFDocument,
+  PDFName,
+  PDFRawStream,
+  StandardFonts,
+  degrees,
+} from "@cantoo/pdf-lib";
 import { describe, expect, it } from "vitest";
 import { PT_PER_MM } from "../src/position";
 import { mergePdfs, needsPassword, openPdf, stampPdf, type StampOptions } from "../src/stamp";
@@ -135,7 +142,8 @@ describe("stampPdf", () => {
     const c = re.getPage(0).node.Contents();
     const streams = c instanceof PDFArray ? c.asArray().map((r) => re.context.lookup(r)) : [c];
     const stillBad = streams.filter(
-      (s) => s instanceof PDFRawStream && s.contents.length === 0 && s.dict.get(PDFName.of("Filter")),
+      (s) =>
+        s instanceof PDFRawStream && s.contents.length === 0 && s.dict.get(PDFName.of("Filter")),
     );
     expect(stillBad).toHaveLength(0);
     expect(streams.some((s) => s instanceof PDFRawStream && s.contents.length > 0)).toBe(true);
