@@ -1,5 +1,5 @@
 import { OPS, getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { PDFDocument, StandardFonts, degrees } from "@cantoo/pdf-lib";
+import { PDFArray, PDFDocument, PDFName, PDFRawStream, StandardFonts, degrees } from "@cantoo/pdf-lib";
 import { describe, expect, it } from "vitest";
 import { PT_PER_MM } from "../src/position";
 import { mergePdfs, needsPassword, openPdf, stampPdf, type StampOptions } from "../src/stamp";
@@ -112,6 +112,34 @@ describe("stampPdf", () => {
 
   it("rejects a corrupt file", async () => {
     await expect(stampPdf(new Uint8Array([1, 2, 3]), "x", OPTS)).rejects.toThrow();
+  });
+
+  // iSEDQuickPDF emits an empty content stream tagged /Filter /FlateDecode with no bytes.
+  // Stamping shifts it mid-array, and strict viewers blank the page on the failed inflate.
+  it("strips the bogus filter off an empty FlateDecode content stream", async () => {
+    const doc = await PDFDocument.create();
+    const page = doc.addPage([200, 200]);
+    page.drawRectangle({ x: 20, y: 20, width: 100, height: 100 });
+    const empty = PDFRawStream.of(
+      doc.context.obj({ Filter: PDFName.of("FlateDecode"), Length: 0 }),
+      new Uint8Array(0),
+    );
+    const emptyRef = doc.context.register(empty);
+    const contents = page.node.get(PDFName.of("Contents"));
+    const refs = contents instanceof PDFArray ? contents.asArray() : [contents!];
+    page.node.set(PDFName.of("Contents"), doc.context.obj([emptyRef, ...refs]));
+
+    const out = await stampPdf(await doc.save(), "F-0001", OPTS);
+
+    const re = await PDFDocument.load(out);
+    const c = re.getPage(0).node.Contents();
+    const streams = c instanceof PDFArray ? c.asArray().map((r) => re.context.lookup(r)) : [c];
+    const stillBad = streams.filter(
+      (s) => s instanceof PDFRawStream && s.contents.length === 0 && s.dict.get(PDFName.of("Filter")),
+    );
+    expect(stillBad).toHaveLength(0);
+    expect(streams.some((s) => s instanceof PDFRawStream && s.contents.length > 0)).toBe(true);
+    expect((await readText(out))[0].map((t) => t.str)).toContain("F-0001");
   });
 });
 
