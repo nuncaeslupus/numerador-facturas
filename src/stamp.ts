@@ -1,7 +1,10 @@
 import {
   EncryptedPDFError,
+  PDFArray,
   PDFDocument,
+  PDFName,
   PDFPage,
+  PDFRawStream,
   StandardFonts,
   degrees,
   rgb,
@@ -110,6 +113,25 @@ function stampPage(page: PDFPage, text: string, font: PDFFont, o: StampOptions):
   });
 }
 
+/**
+ * Some producers (e.g. iSEDQuickPDF) emit an empty content stream marked `/Filter
+ * /FlateDecode` with zero bytes — invalid, as Flate data needs at least a header. Left
+ * first in `/Contents`, strict viewers (poppler, Chrome, Acrobat) tolerate it; but
+ * stamping prepends a graphics-state wrapper, pushing it mid-array where the failed
+ * inflate makes them abort the whole page (blank). Dropping the bogus filter from empty
+ * streams — what qpdf does — makes `/Length 0` valid again. Lenient viewers (mupdf) were
+ * never affected, which is why the page looked fine in some tools.
+ */
+function fixEmptyContentStreams(page: PDFPage): void {
+  const { context } = page.node;
+  const contents = page.node.Contents();
+  const streams =
+    contents instanceof PDFArray ? contents.asArray().map((r) => context.lookup(r)) : [contents];
+  for (const s of streams) {
+    if (s instanceof PDFRawStream && s.contents.length === 0) s.dict.delete(PDFName.of("Filter"));
+  }
+}
+
 /** Stamps `text` on every page. Expects bytes from openPdf; throws on unreadable PDFs. */
 export async function stampPdf(
   bytes: Uint8Array,
@@ -118,7 +140,10 @@ export async function stampPdf(
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.load(bytes);
   const font = await doc.embedFont(o.font);
-  for (const page of doc.getPages()) stampPage(page, text, font, o);
+  for (const page of doc.getPages()) {
+    fixEmptyContentStreams(page);
+    stampPage(page, text, font, o);
+  }
   return doc.save();
 }
 
