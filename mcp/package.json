@@ -1,6 +1,6 @@
 {
   "name": "numerador-facturas-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Numera facturas PDF en lote desde un LLM, en local y sin red. Number PDF invoices offline.",
   "license": "MIT",
   "type": "module",

@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "numerador-facturas",
   "display_name": "Numerador de facturas",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Numera facturas PDF en lote, en tu equipo y sin red.",
   "long_description": "Estampa un número correlativo (F-0001, F-0002…) en todas las páginas de cada factura y escribe copias numeradas en una carpeta nueva. Funciona sin conexión: los PDFs no salen de tu equipo y los originales no se modifican.",
   "author": { "name": "nuncaeslupus", "url": "https://github.com/nuncaeslupus" },
