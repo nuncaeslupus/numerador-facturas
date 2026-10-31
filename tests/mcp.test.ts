@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, readdir, stat, symlink, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -25,6 +26,7 @@ vi.mock("node:fs/promises", async (actual) => {
 });
 
 let dir: string;
+const password = randomUUID();
 
 async function connect() {
   const client = new Client({ name: "test", version: "0" });
@@ -128,14 +130,14 @@ describe("number_invoices", () => {
 
   it("test_tool_locked_file_stops_the_whole_batch_until_password_given", async () => {
     await addPdf("a.pdf");
-    await addPdf("b.pdf", "abrir");
+    await addPdf("b.pdf", password);
 
     const locked = await call({ paths: [dir] });
     expect(locked.isError).toBe(true);
     expect(locked.text).toContain("b.pdf");
     expect(await readdir(dir)).toEqual(["a.pdf", "b.pdf"]);
 
-    const { report } = await call({ paths: [dir], password: "abrir" });
+    const { report } = await call({ paths: [dir], password });
     expect(await textOf(report.files[1].output)).toBe("F-0002");
   });
 
@@ -174,11 +176,11 @@ describe("number_invoices", () => {
     const doc = await PDFDocument.create();
     for (let i = 0; i < 3; i++) doc.addPage([200, 200]).drawText(`página ${i}`);
     await doc.save();
-    doc.encrypt({ userPassword: "abrir", ownerPassword: "dueño" });
+    doc.encrypt({ userPassword: password, ownerPassword: randomUUID() });
     const bytes = await doc.save({ useObjectStreams: false });
     bytes.fill(0, Math.floor(bytes.length * 0.3), Math.floor(bytes.length * 0.6));
     await writeFile(path.join(dir, "danado.pdf"), bytes);
-    expect((await call({ paths: [dir], password: "abrir" })).isError).toBe(true);
+    expect((await call({ paths: [dir], password })).isError).toBe(true);
   });
 
   it("test_tool_position_off_the_page_is_refused", async () => {
