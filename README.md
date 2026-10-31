@@ -1,5 +1,7 @@
 # numerador-facturas
 
+[![numerador-facturas MCP server – quality and maintenance score on Glama](https://glama.ai/mcp/servers/nuncaeslupus/numerador-facturas/badges/score.svg)](https://glama.ai/mcp/servers/nuncaeslupus/numerador-facturas)
+
 **Numera facturas PDF en lote desde el navegador.** Estampa un número correlativo
 (`F-0001`, `F-0002`…) en **todas las páginas** de cada factura y te devuelve un ZIP listo
 para entregar. Todo ocurre del lado del cliente: **los PDFs nunca salen de tu equipo.**
