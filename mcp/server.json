@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.nuncaeslupus/numerador-facturas",
+  "title": "Numerador de facturas",
+  "description": "Number batches of PDF invoices offline: stamps F-0001, F-0002… on a local copy of each.",
+  "repository": {
+    "url": "https://github.com/nuncaeslupus/numerador-facturas",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "websiteUrl": "https://nuncaeslupus.github.io/numerador-facturas/",
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "numerador-facturas-mcp",
+      "version": "0.1.1",
+      "runtimeHint": "npx",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}

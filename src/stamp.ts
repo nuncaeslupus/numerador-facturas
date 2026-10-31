@@ -156,8 +156,13 @@ export async function mergePdfs(docs: Uint8Array[]): Promise<Uint8Array> {
   return out.save();
 }
 
-/** Throws if a standard font cannot encode the text (e.g. characters outside WinAnsi). */
+/**
+ * Throws if a standard font cannot encode the text (e.g. characters outside WinAnsi).
+ * encodeText cannot tell: it silently turns those characters into "?".
+ */
 export async function checkEncodable(text: string, fontName: FontName): Promise<void> {
   const doc = await PDFDocument.create();
-  (await doc.embedFont(fontName)).encodeText(text);
+  const known = new Set((await doc.embedFont(fontName)).getCharacterSet());
+  const bad = [...text].filter((c) => !known.has(c.codePointAt(0) as number));
+  if (bad.length) throw new Error(`Fuera de WinAnsi: ${[...new Set(bad)].join(" ")}`);
 }

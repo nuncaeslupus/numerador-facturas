@@ -1,0 +1,28 @@
+{
+  "manifest_version": "0.3",
+  "name": "numerador-facturas",
+  "display_name": "Numerador de facturas",
+  "version": "0.1.1",
+  "description": "Numera facturas PDF en lote, en tu equipo y sin red.",
+  "long_description": "Estampa un número correlativo (F-0001, F-0002…) en todas las páginas de cada factura y escribe copias numeradas en una carpeta nueva. Funciona sin conexión: los PDFs no salen de tu equipo y los originales no se modifican.",
+  "author": { "name": "nuncaeslupus", "url": "https://github.com/nuncaeslupus" },
+  "homepage": "https://nuncaeslupus.github.io/numerador-facturas/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nuncaeslupus/numerador-facturas"
+  },
+  "license": "MIT",
+  "keywords": ["pdf", "invoices", "facturas", "numerar", "offline"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.mjs",
+    "mcp_config": { "command": "node", "args": ["${__dirname}/server/index.mjs"] }
+  },
+  "tools": [
+    {
+      "name": "number_invoices",
+      "description": "Numera en lote facturas PDF en local y escribe copias numeradas."
+    }
+  ],
+  "compatibility": { "runtimes": { "node": ">=20" } }
+}
