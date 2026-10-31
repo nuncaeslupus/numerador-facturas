@@ -25,6 +25,9 @@ data/
 node_modules/
 dist/
 public/pdfjs/
+public/numerador-facturas.mcpb
+mcp/dist/
+mcp/LICENSE
 
 # Scripts locales de apoyo (muestras sintéticas, etc.)
 tmp/

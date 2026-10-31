@@ -1,0 +1,8 @@
+# Allow-list, so real invoices in data/ can never reach an image.
+*
+!package.json
+!package-lock.json
+!vite.mcp.config.ts
+!src
+!mcp
+mcp/dist

@@ -1,0 +1,56 @@
+name: Release MCP
+
+# Publishes numerador-facturas-mcp to npm (trusted publishing, no token) and to the MCP registry.
+# Runs on a tag mcp-vX.Y.Z, not on merges: npm refuses trusted publishing for a package that does
+# not exist yet, so the first version is published by hand (see mcp/README.md).
+
+on:
+  push:
+    tags: ["mcp-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # npm trusted publishing needs npm 11.5 or later, which comes with Node 24.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Check the tag matches the package version
+        run: test "$GITHUB_REF_NAME" = "mcp-v$(node -p 'require("./mcp/package.json").version')"
+
+      - run: npm ci
+      # Builds the bundle first, so the tests check what gets published.
+      - run: npm run build
+      - run: npm test
+
+      # A version already on npm (the hand-published first one, or a re-run) only goes to the registry.
+      - name: Publish to npm
+        working-directory: mcp
+        run: |
+          if [ -z "$(npm view "numerador-facturas-mcp@${GITHUB_REF_NAME#mcp-v}" version)" ]; then
+            npm publish --access public
+          fi
+
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Publish to the MCP registry
+        working-directory: mcp
+        run: |
+          ../mcp-publisher login github-oidc
+          ../mcp-publisher publish

@@ -31,7 +31,7 @@ typecheck:
 check: format-check lint typecheck build test
 
 clean:
-	rm -rf dist node_modules
+	rm -rf dist node_modules mcp/dist mcp/LICENSE public/numerador-facturas.mcpb
 
 update-skills:
 	git subtree pull --prefix .claude/skills https://github.com/nuncaeslupus/my-skills.git main --squash

@@ -1,0 +1,36 @@
+{
+  "name": "numerador-facturas-mcp",
+  "version": "0.1.0",
+  "description": "Numera facturas PDF en lote desde un LLM, en local y sin red. Number PDF invoices offline.",
+  "license": "MIT",
+  "type": "module",
+  "mcpName": "io.github.nuncaeslupus/numerador-facturas",
+  "bin": {
+    "numerador-facturas-mcp": "dist/server.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "cd .. && npm run build:mcp && cp LICENSE mcp/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "homepage": "https://nuncaeslupus.github.io/numerador-facturas/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuncaeslupus/numerador-facturas.git",
+    "directory": "mcp"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "pdf",
+    "invoices",
+    "facturas",
+    "numerar",
+    "bates",
+    "offline"
+  ]
+}

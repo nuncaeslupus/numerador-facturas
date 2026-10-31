@@ -228,6 +228,34 @@
       </section>
     </main>
 
+    <section class="ai">
+      <h2 data-i18n="aiTitle">Úsalo desde tu IA</h2>
+      <p data-i18n="aiLede">
+        Claude u otro asistente compatible con MCP puede numerar tus facturas en tu equipo, sin
+        abrir esta página.
+      </p>
+      <ol>
+        <li data-i18n-html="aiFind">
+          <strong>Descubrir.</strong> Busca «numerador-facturas» en el registro de MCP, o dale a tu
+          IA este <a href="llms.txt">llms.txt</a> con las instrucciones.
+        </li>
+        <li>
+          <span data-i18n-html="aiGet"
+            ><strong>Descargar.</strong>
+            <a href="numerador-facturas.mcpb" download>Descarga la extensión</a> y ábrela con Claude
+            Desktop, o añádela a Claude Code:</span
+          >
+          <code
+            >claude mcp add --scope user numerador-facturas -- npx -y numerador-facturas-mcp</code
+          >
+        </li>
+        <li data-i18n-html="aiUse">
+          <strong>Usar en privado.</strong> Pídele «numera las facturas de esta carpeta». Funciona
+          en tu equipo, sin red, y no entrega a la IA el contenido de las facturas.
+        </li>
+      </ol>
+    </section>
+
     <footer>
       <span data-i18n="footer"
         >Gratis y de código abierto. Sin servidor, sin cookies, sin analítica.</span

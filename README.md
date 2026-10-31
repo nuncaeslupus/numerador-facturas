@@ -63,6 +63,13 @@ Sitio estático sin backend. La página lleva una Content-Security-Policy que so
 cargar recursos del propio sitio, y un test comprueba que el código no hace peticiones de
 red (`fetch`, XHR, WebSocket…).
 
+## Usar desde una IA (MCP)
+
+La web no tiene API: lo que usa un LLM es [`mcp/`](mcp/README.md), un servidor MCP sin UI que
+reutiliza el código de `src/` y se ejecuta en tu equipo, sin red. La propia web explica cómo
+instalarlo y sirve el `.mcpb` para Claude Desktop y un
+[`llms.txt`](https://nuncaeslupus.github.io/numerador-facturas/llms.txt) para los LLM.
+
 ## Desarrollo
 
 Vite + TypeScript, [@cantoo/pdf-lib](https://github.com/cantoo-scribe/pdf-lib) (pdf-lib con

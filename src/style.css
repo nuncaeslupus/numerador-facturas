@@ -373,6 +373,43 @@ button:disabled {
   cursor: crosshair;
 }
 
+.ai {
+  max-width: 1200px;
+  margin: 32px auto 0;
+  padding: 0 16px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.ai h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.ai p,
+.ai ol {
+  margin: 8px 0 0;
+  max-width: 80ch;
+}
+
+.ai a {
+  color: var(--accent);
+}
+
+.ai code {
+  display: block;
+  margin: 6px 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
 footer {
   padding-top: 24px;
   padding-bottom: 32px;

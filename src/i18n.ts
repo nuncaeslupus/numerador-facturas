@@ -43,6 +43,15 @@ const es = {
   noFiles: "Sin archivos",
   footer: "Gratis y de código abierto. Sin servidor, sin cookies, sin analítica.",
   source: "Código fuente",
+  aiTitle: "Úsalo desde tu IA",
+  aiLede:
+    "Claude u otro asistente compatible con MCP puede numerar tus facturas en tu equipo, sin abrir esta página.",
+  aiFind:
+    '<strong>Descubrir.</strong> Busca «numerador-facturas» en el registro de MCP, o dale a tu IA este <a href="llms.txt">llms.txt</a> con las instrucciones.',
+  aiGet:
+    '<strong>Descargar.</strong> <a href="numerador-facturas.mcpb" download>Descarga la extensión</a> y ábrela con Claude Desktop, o añádela a Claude Code:',
+  aiUse:
+    "<strong>Usar en privado.</strong> Pídele «numera las facturas de esta carpeta». Funciona en tu equipo, sin red, y no entrega a la IA el contenido de las facturas.",
   up: "Subir",
   down: "Bajar",
   remove: "Quitar",
@@ -115,6 +124,15 @@ const en: Dict = {
   noFiles: "No files",
   footer: "Free and open source. No server, no cookies, no analytics.",
   source: "Source code",
+  aiTitle: "Use it from your AI",
+  aiLede:
+    "Claude or another MCP-compatible assistant can number your invoices on your computer, without opening this page.",
+  aiFind:
+    '<strong>Discover.</strong> Search for “numerador-facturas” in the MCP registry, or give your AI this <a href="llms.txt">llms.txt</a> with the instructions.',
+  aiGet:
+    '<strong>Download.</strong> <a href="numerador-facturas.mcpb" download>Download the extension</a> and open it with Claude Desktop, or add it to Claude Code:',
+  aiUse:
+    "<strong>Use it privately.</strong> Ask it to “number the invoices in this folder”. It runs on your computer, offline, and does not hand the invoices' contents to the AI.",
   up: "Move up",
   down: "Move down",
   remove: "Remove",
@@ -184,6 +202,15 @@ const fr: Dict = {
   noFiles: "Aucun fichier",
   footer: "Gratuit et open source. Sans serveur, sans cookies, sans statistiques.",
   source: "Code source",
+  aiTitle: "Utilisez-le depuis votre IA",
+  aiLede:
+    "Claude ou un autre assistant compatible MCP peut numéroter vos factures sur votre ordinateur, sans ouvrir cette page.",
+  aiFind:
+    '<strong>Découvrir.</strong> Cherchez « numerador-facturas » dans le registre MCP, ou donnez à votre IA ce <a href="llms.txt">llms.txt</a> avec les instructions.',
+  aiGet:
+    '<strong>Télécharger.</strong> <a href="numerador-facturas.mcpb" download>Téléchargez l\'extension</a> et ouvrez-la avec Claude Desktop, ou ajoutez-la à Claude Code :',
+  aiUse:
+    "<strong>Utiliser en privé.</strong> Demandez-lui de « numéroter les factures de ce dossier ». Tout se passe sur votre ordinateur, hors ligne, et le contenu des factures n'est pas transmis à l'IA.",
   up: "Monter",
   down: "Descendre",
   remove: "Retirer",
@@ -254,6 +281,15 @@ const it: Dict = {
   noFiles: "Nessun file",
   footer: "Gratis e open source. Senza server, senza cookie, senza statistiche.",
   source: "Codice sorgente",
+  aiTitle: "Usalo dalla tua IA",
+  aiLede:
+    "Claude o un altro assistente compatibile con MCP può numerare le tue fatture sul tuo computer, senza aprire questa pagina.",
+  aiFind:
+    '<strong>Scoprire.</strong> Cerca «numerador-facturas» nel registro MCP, oppure dai alla tua IA questo <a href="llms.txt">llms.txt</a> con le istruzioni.',
+  aiGet:
+    '<strong>Scaricare.</strong> <a href="numerador-facturas.mcpb" download>Scarica l\'estensione</a> e aprila con Claude Desktop, oppure aggiungila a Claude Code:',
+  aiUse:
+    "<strong>Usare in privato.</strong> Chiedile di «numerare le fatture di questa cartella». Funziona sul tuo computer, senza rete, e non consegna all'IA il contenuto delle fatture.",
   up: "Su",
   down: "Giù",
   remove: "Rimuovi",
@@ -324,6 +360,15 @@ const de: Dict = {
   noFiles: "Keine Dateien",
   footer: "Kostenlos und Open Source. Kein Server, keine Cookies, keine Analyse.",
   source: "Quellcode",
+  aiTitle: "Mit deiner KI verwenden",
+  aiLede:
+    "Claude oder ein anderer MCP-fähiger Assistent kann deine Rechnungen auf deinem Computer nummerieren, ohne diese Seite zu öffnen.",
+  aiFind:
+    '<strong>Finden.</strong> Suche im MCP-Register nach „numerador-facturas“ oder gib deiner KI diese <a href="llms.txt">llms.txt</a> mit der Anleitung.',
+  aiGet:
+    '<strong>Herunterladen.</strong> <a href="numerador-facturas.mcpb" download>Lade die Erweiterung herunter</a> und öffne sie mit Claude Desktop, oder füge sie zu Claude Code hinzu:',
+  aiUse:
+    "<strong>Privat nutzen.</strong> Bitte sie: „Nummeriere die Rechnungen in diesem Ordner.“ Das läuft auf deinem Computer, ohne Netzwerk, und der Inhalt der Rechnungen geht nicht an die KI.",
   up: "Nach oben",
   down: "Nach unten",
   remove: "Entfernen",
@@ -394,6 +439,14 @@ const zh: Dict = {
   noFiles: "没有文件",
   footer: "免费开源。无服务器，无 Cookie，无统计分析。",
   source: "源代码",
+  aiTitle: "在你的 AI 中使用",
+  aiLede: "Claude 或其他兼容 MCP 的助手可以在你的电脑上为发票编号，无需打开此页面。",
+  aiFind:
+    '<strong>发现。</strong>在 MCP 注册表中搜索“numerador-facturas”，或把这份含说明的 <a href="llms.txt">llms.txt</a> 交给你的 AI。',
+  aiGet:
+    '<strong>下载。</strong><a href="numerador-facturas.mcpb" download>下载扩展</a>并用 Claude Desktop 打开，或将其添加到 Claude Code：',
+  aiUse:
+    "<strong>私密使用。</strong>对它说“给这个文件夹里的发票编号”。它在你的电脑上离线运行，不会把发票内容交给 AI。",
   up: "上移",
   down: "下移",
   remove: "移除",
@@ -462,6 +515,15 @@ const ca: Dict = {
   noFiles: "Cap fitxer",
   footer: "Gratis i de codi obert. Sense servidor, sense galetes, sense analítica.",
   source: "Codi font",
+  aiTitle: "Fes-lo servir des de la teva IA",
+  aiLede:
+    "Claude o un altre assistent compatible amb MCP pot numerar les teves factures al teu equip, sense obrir aquesta pàgina.",
+  aiFind:
+    '<strong>Descobrir.</strong> Cerca «numerador-facturas» al registre de MCP, o dona a la teva IA aquest <a href="llms.txt">llms.txt</a> amb les instruccions.',
+  aiGet:
+    '<strong>Baixar.</strong> <a href="numerador-facturas.mcpb" download>Baixa l\'extensió</a> i obre-la amb Claude Desktop, o afegeix-la a Claude Code:',
+  aiUse:
+    "<strong>Fer-lo servir en privat.</strong> Demana-li «numera les factures d'aquesta carpeta». Funciona al teu equip, sense xarxa, i no lliura a la IA el contingut de les factures.",
   up: "Puja",
   down: "Baixa",
   remove: "Treu",
@@ -532,6 +594,15 @@ const pt: Dict = {
   noFiles: "Sem ficheiros",
   footer: "Grátis e de código aberto. Sem servidor, sem cookies, sem análise.",
   source: "Código-fonte",
+  aiTitle: "Use-o a partir da sua IA",
+  aiLede:
+    "O Claude ou outro assistente compatível com MCP pode numerar as suas faturas no seu computador, sem abrir esta página.",
+  aiFind:
+    '<strong>Descobrir.</strong> Procure «numerador-facturas» no registo MCP, ou dê à sua IA este <a href="llms.txt">llms.txt</a> com as instruções.',
+  aiGet:
+    '<strong>Transferir.</strong> <a href="numerador-facturas.mcpb" download>Transfira a extensão</a> e abra-a com o Claude Desktop, ou adicione-a ao Claude Code:',
+  aiUse:
+    "<strong>Usar em privado.</strong> Peça-lhe «numera as faturas desta pasta». Funciona no seu computador, sem rede, e não entrega à IA o conteúdo das faturas.",
   up: "Subir",
   down: "Descer",
   remove: "Remover",
@@ -602,6 +673,15 @@ const ja: Dict = {
   noFiles: "ファイルなし",
   footer: "無料・オープンソース。サーバー・Cookie・解析なし。",
   source: "ソースコード",
+  aiTitle: "AI から使う",
+  aiLede:
+    "Claude などの MCP 対応アシスタントなら、このページを開かずに、お使いのパソコン上で請求書に番号を付けられます。",
+  aiFind:
+    '<strong>見つける。</strong>MCP レジストリで「numerador-facturas」を検索するか、手順を記した <a href="llms.txt">llms.txt</a> を AI に渡します。',
+  aiGet:
+    '<strong>ダウンロード。</strong><a href="numerador-facturas.mcpb" download>拡張機能をダウンロード</a>して Claude Desktop で開くか、Claude Code に追加します：',
+  aiUse:
+    "<strong>プライベートに使う。</strong>「このフォルダの請求書に番号を付けて」と頼むだけです。パソコン上でオフラインで動作し、請求書の内容を AI に渡しません。",
   up: "上へ",
   down: "下へ",
   remove: "削除",
