@@ -139,6 +139,8 @@ context-window = 0
 # lands inside the table instead of at the top level.
 queue-automation = true
 
+attribution = true
+
 [models]
 orchestrator = ""
 workers = "sonnet"
@@ -167,6 +169,7 @@ reviewers = ""
 reviewer-identity = "distinct-session"
 
 [skills]
+android = false
 extract = false
 python = false
 workflow = true
