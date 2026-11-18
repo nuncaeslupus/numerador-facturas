@@ -140,12 +140,9 @@ context-window = 0
 queue-automation = true
 
 attribution = true
-
 bot-triggers = ["coderabbitai[bot]=@coderabbitai review"]
-
 review-bots = ["coderabbitai[bot]"]
-
-setup-interview = "2026-11-11"
+setup-interview = "2026-11-18"
 
 [models]
 orchestrator = ""
