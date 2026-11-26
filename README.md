@@ -102,6 +102,9 @@ Este repo sigue el flujo spec → diseño → ejecución de
 - [doc-control](https://github.com/nuncaeslupus/doc-control) — permite a agentes de IA editar documentos Word como cambios con control de versiones.
 - [literary-critic](https://github.com/nuncaeslupus/literary-critic) — análisis de manuscritos con LLM como lo haría un editor profesional.
 - [integral-job-search](https://github.com/nuncaeslupus/integral-job-search) — búsqueda de empleo centrada en el candidato, dentro de Claude Code.
+- [pdf-password-breaker](https://github.com/nuncaeslupus/pdf-password-breaker) — recupera la contraseña de tu propio PDF a partir de pistas, en el navegador.
+- [comparador-luz-gas](https://github.com/nuncaeslupus/comparador-luz-gas) — el comparador oficial de tarifas de luz y gas de la CNMC, como CLI y servidor MCP.
+- [image-to-svg](https://github.com/nuncaeslupus/image-to-svg) — convierte imágenes a SVG en el navegador, sin subir nada.
 
 ## Licencia
 
